@@ -1,6 +1,6 @@
 # dev-kit
 
-The development system from [AnkyLock](https://github.com/o-kangal/AnkyLock), packaged so a new project starts with it on day one: an agent-ready plan (`AGENTS.md`, `SPEC.md`, `TASKS.md` and a `next-task` skill for [Claude Code](https://claude.com/claude-code)), tight Claude permissions, CI with secret scanning and CodeQL, Dependabot, branch rulesets, security docs, and optional modules for TypeScript, Rust and Cloudflare Pages.
+A development system for [Claude Code](https://claude.com/claude-code) projects, packaged so a new project starts with it on day one: an agent-ready plan (`AGENTS.md`, `SPEC.md`, `TASKS.md` and a `next-task` skill), tight Claude permissions, CI with secret scanning and CodeQL, Dependabot, branch rulesets, security docs, and optional modules for TypeScript, Rust and Cloudflare Pages.
 
 It has two halves:
 
@@ -11,10 +11,18 @@ It has two halves:
 
 ```bash
 git clone git@github.com:o-kangal/dev-kit.git ~/Coding/dev-kit
-~/Coding/dev-kit/install.sh
+~/Coding/dev-kit/install.sh --dry-run   # see what it would do
+~/Coding/dev-kit/install.sh             # explains, checks requirements, shows the plan, asks
 ```
 
-`install.sh` links `~/.claude/skills/dev-kit` and `~/.claude/CLAUDE.md` (global preferences that hold in every project) into the clone. It moves any existing file there aside first. `git pull` updates both; `./install.sh --uninstall` removes the links.
+The installer creates two symbolic links and nothing else. Nothing is copied, downloaded or run as root:
+
+- `~/.claude/skills/dev-kit` → `skills/dev-kit`, the `/dev-kit` skill;
+- `~/.claude/CLAUDE.md` → `global/CLAUDE.md`, preferences that hold in every project.
+
+It first says what the kit is and checks the requirements (Node 22+ and git; gh and Docker are optional). Then it shows, for each link, whether it will be created, is already there, or replaces a file. A file of yours that is in the way is moved to `<name>.bak-<timestamp>`, never deleted. A link from an earlier install, into another copy of the kit or into a kit that has moved, is just pointed here again. Running it again on an installed system changes nothing. Nothing changes until you answer `y`. Without a terminal to answer in (CI, scripts), it stops unless you pass `--yes`.
+
+`git pull` in the kit updates both links. `./install.sh --uninstall` removes them after asking, and only if they point into this kit.
 
 ## Use
 

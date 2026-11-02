@@ -5,7 +5,7 @@
   ],
   "vars": {
     "NAME": {
-      "description": "Project name as written in prose, e.g. AnkyLock"
+      "description": "Project name as written in prose, e.g. My App"
     },
     "DESCRIPTION": {
       "description": "One-sentence description of the project"

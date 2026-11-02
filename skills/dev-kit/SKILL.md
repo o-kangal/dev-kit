@@ -1,6 +1,6 @@
 ---
 name: dev-kit
-description: Set up a project with Onur's development system (AGENTS.md, SPEC.md, TASKS.md, the next-task skill, Claude permissions, CI with gitleaks and CodeQL, Dependabot, rulesets, security docs, optional TypeScript / Rust / Cloudflare Pages modules) together with the user, deciding every choice with them; add or remove modules later; or update a project to the newest kit. Use when the user says "/dev-kit", "add the dev kit to this project", "set up our workflow here", "bootstrap this project", "start a new project", "update the dev kit", or starts work in a repository without AGENTS.md and TASKS.md.
+description: Set up a project with the dev-kit development system (AGENTS.md, SPEC.md, TASKS.md, the next-task skill, Claude permissions, CI with gitleaks and CodeQL, Dependabot, rulesets, security docs, optional TypeScript / Rust / Cloudflare Pages modules) together with the user, deciding every choice with them; add or remove modules later; or update a project to the newest kit. Use when the user says "/dev-kit", "add the dev kit to this project", "set up our workflow here", "bootstrap this project", "start a new project", "update the dev kit", or starts work in a repository without AGENTS.md and TASKS.md.
 argument-hint: "init | add <module> | remove <module> | update | status"
 ---
 
@@ -89,7 +89,7 @@ node "$KIT/bin/dev-kit.mjs" init . --modules <a,b> --var ... --no-settings
 
 Explain what `.claude/settings.json` will allow and deny (from `"$KIT"/modules/*/settings.json`), in particular that `AGENTS.md` becomes read-only for agents. Ask whether the project needs other `Edit(...)` paths (source folders other than `src/**`, `tests/**`). Then render again to add it: `node "$KIT/bin/dev-kit.mjs" init .`.
 
-Suggest domain skills for `.claude/skills/` where the project has rules the task text can't carry (AnkyLock had `crypto-audit`, `sqlite-migration`, …); write them only if the user wants them now.
+Suggest domain skills for `.claude/skills/` where the project has rules the task text can't carry (for example an audit of its encryption code, or how to write a database migration); write them only if the user wants them now.
 
 ### 7. Verify
 
