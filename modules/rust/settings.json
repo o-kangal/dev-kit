@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check*)",
+      "Bash(cargo test*)",
+      "Bash(cargo clippy*)",
+      "Bash(cargo fmt*)",
+      "Bash(cargo deny*)",
+      "Bash(cargo search *)",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(Cargo.toml)"
+    ],
+    "deny": [
+      "Bash(cargo add *)",
+      "Bash(cargo install *)"
+    ]
+  }
+}

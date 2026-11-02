@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(npm view *)",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(public/**)",
+      "Edit(package.json)",
+      "Edit(tsconfig.json)",
+      "Edit(vite.config.ts)",
+      "Edit(vitest.config.ts)",
+      "Edit(eslint.config.js)"
+    ],
+    "deny": [
+      "Bash(pnpm add *)",
+      "Bash(pnpm install *--no-frozen-lockfile*)",
+      "Bash(npm install *)",
+      "Bash(npx *)"
+    ]
+  }
+}

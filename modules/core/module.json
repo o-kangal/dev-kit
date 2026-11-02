@@ -1,0 +1,28 @@
+{
+  "description": "Claude workflow (AGENTS.md, SPEC.md, TASKS.md, next-task skill, permissions), CI security scan, CodeQL, Dependabot for Actions, rulesets, repo docs.",
+  "codeql": [
+    "actions"
+  ],
+  "vars": {
+    "NAME": {
+      "description": "Project name as written in prose, e.g. AnkyLock"
+    },
+    "DESCRIPTION": {
+      "description": "One-sentence description of the project"
+    },
+    "REPO": {
+      "description": "GitHub repository, owner/name, e.g. o-kangal/portfolio"
+    }
+  },
+  "owned": [
+    "AGENTS.md",
+    "SPEC.md",
+    "TASKS.md",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    ".gitleaks.toml",
+    ".gitignore"
+  ]
+}

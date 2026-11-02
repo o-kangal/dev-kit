@@ -1,0 +1,37 @@
+{{#ts}}
+# Dependencies
+node_modules/
+
+{{/ts}}
+# Build output
+{{#ts}}
+dist/
+*.tsbuildinfo
+{{/ts}}
+{{#rust}}
+target/
+{{/rust}}
+
+# Test & coverage
+coverage/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+{{#ts}}
+pnpm-debug.log*
+{{/ts}}
+
+# Editors & OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code per-user settings
+.claude/settings.local.json

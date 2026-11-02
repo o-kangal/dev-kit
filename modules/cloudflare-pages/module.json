@@ -1,0 +1,10 @@
+{
+  "description": "Deploy a static site to Cloudflare Pages from CI (Direct Upload with wrangler), then check the live page is exactly the built one. Works with any stack: plain HTML/CSS/JS without a build, or any build command that writes a directory.",
+  "vars": {
+    "SITE_URL": { "description": "Production URL without a trailing slash, e.g. https://okangal.com" },
+    "CF_PROJECT": { "description": "Cloudflare Pages project name, e.g. portfolio" },
+    "BUILD_COMMAND": { "description": "Command that builds the site, e.g. `pnpm run build`; empty when the files are deployed as they are", "default": "" },
+    "DIST_DIR": { "description": "Directory that is deployed: the build output, or the folder holding the pages when there is no build (never the repository root)", "default": "dist" }
+  },
+  "owned": ["docs/deploy.md"]
+}

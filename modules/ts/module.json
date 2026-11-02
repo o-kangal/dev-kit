@@ -1,0 +1,9 @@
+{
+  "description": "pnpm + strict TypeScript + Vitest + ESLint: tsconfig, eslint config, CI job (typecheck, lint, test, build, audit), Dependabot for npm.",
+  "codeql": [
+    "javascript-typescript"
+  ],
+  "actions": [
+    "pnpm/action-setup@*"
+  ]
+}

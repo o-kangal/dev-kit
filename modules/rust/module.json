@@ -1,0 +1,11 @@
+{
+  "description": "Rust workspace: CI job (fmt, clippy, test, cargo deny), deny.toml, Dependabot for Cargo.",
+  "codeql": [
+    "rust"
+  ],
+  "actions": [
+    "dtolnay/rust-toolchain@*",
+    "Swatinem/rust-cache@*",
+    "EmbarkStudios/cargo-deny-action@*"
+  ]
+}

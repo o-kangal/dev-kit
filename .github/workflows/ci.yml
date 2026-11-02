@@ -1,0 +1,53 @@
+# Every push and pull request: the kit's tests, actionlint over every rendered module combination,
+# and gitleaks. Actions are pinned to commit SHAs (the tag is in the comment); Dependabot keeps
+# them current.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests and rendered workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: node --test
+      - run: bash -n install.sh
+      - name: actionlint (the kit's own workflows and every rendered combination)
+        run: |
+          node scripts/render-all.mjs "$RUNNER_TEMP/rendered"
+          lint() { docker run --rm -v "$1:/repo" -w /repo docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color=false; }
+          lint "$PWD"
+          for dir in "$RUNNER_TEMP"/rendered/*/; do echo "== $dir"; lint "$dir"; done
+
+  security:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: gitleaks
+        run: >
+          docker run --rm -v "$PWD:/repo" -w /repo
+          -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/repo
+          docker.io/zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+          git --redact --verbose --exit-code 1 .

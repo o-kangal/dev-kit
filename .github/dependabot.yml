@@ -1,0 +1,13 @@
+# Weekly updates of the kit's own workflow actions. The SHAs inside modules/ are not seen by
+# Dependabot: refresh them by hand when releasing (README.md, "Releasing").
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
