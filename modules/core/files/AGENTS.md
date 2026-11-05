@@ -63,7 +63,9 @@ Always run these commands from the repository root:
 - **DO NOT** install crates with `cargo add` (denied). Write them into `Cargo.toml` by hand at a current version (`cargo search <crate>`), under a license `deny.toml` allows.
 {{/rust}}
 - **DO NOT** pin a GitHub Action by tag. Pin it to a full commit SHA with the tag in a comment; Dependabot keeps the pins current.
+- **DO NOT** add a third-party GitHub Action without telling the owner. GitHub blocks it until the owner lists it under `project.actions` in `.dev-kit.json` and applies `docs/github-settings.md`.
 - **DO NOT** commit secrets, tokens or `.env` files. gitleaks runs on every push.
+- **DO NOT** commit or link to `docs/private/`. It holds personal notes and stays git-ignored.
 - **DO NOT** invent facts in content, docs or metadata (names, dates, numbers, links). Ask instead.
 - **DO NOT** weaken a check to make it pass (skipped tests, `eslint-disable`, lowered CI thresholds) without saying so in the report.
 <!-- TODO(dev-kit): project-specific prohibitions. -->

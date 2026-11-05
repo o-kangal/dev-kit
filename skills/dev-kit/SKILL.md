@@ -41,6 +41,9 @@ Find out what is already there, without changing anything:
 - Deployment: Cloudflare (`wrangler.toml`, a Git integration mentioned in docs), workflows in `.github/`, a domain in the code or README.
 - Existing `AGENTS.md`, `SPEC.md`, `TASKS.md`, `CLAUDE.md`, `.claude/`, `.github/`: the script keeps them; their content is merged in step 5.
 - `node "$KIT/bin/dev-kit.mjs" list` for the modules and their variables.
+- Git readiness: whether this is a repository yet, and the effective `user.email`, `commit.gpgsign`, `gpg.format` and `user.signingkey`. Check them before anything is committed.
+- Tools the likely stack needs, even when the kit has no module for it (`command -v pnpm cargo uv docker gh`). Report what is missing; never install it for the user.
+- Existing documents that would be published (plans, notes, drafts). Read them, not only the git history, and flag personal content such as CVs, job search notes, contacts or private plans, quoting where it is. The user decides what stays out; the kit's `.gitignore` already ignores `docs/private/` for this.
 
 Then give the user a short picture: what the project is today, what the kit would add, which files would be kept and merged, and the decisions ahead. Ask whether to continue.
 
@@ -59,13 +62,16 @@ Questions in this round: the modules (multi-select, with a recommendation built 
 Only what the chosen modules need, each with a proposed value from step 1:
 
 - `NAME`, `DESCRIPTION`, `REPO`.
+- For `ts`: `TS_DIR`, left empty when the package is at the repository root. With a subdirectory (`frontend`), the root needs a pnpm workspace whose scripts delegate to it, because CI and AGENTS.md run from the root; plan that for the first task.
 - For `cloudflare-pages`: `SITE_URL`, `CF_PROJECT`, `BUILD_COMMAND` (empty for files deployed as they are) and `DIST_DIR`. A site without a build needs its pages in their own folder, never the repository root, which would publish `.git` and the docs. If that means moving files, say so here.
 - **License**: MIT (permissive), AGPL-3.0 (changes must stay open, also when run as a service), or none (all rights reserved). For a site or portfolio, also ask whether the content (texts, images, CV) stays all rights reserved while the code is MIT.
-- **Visibility**: public (free rulesets, CodeQL, secret scanning; everything in history becomes visible, so check it for personal data first) or private.
+- **Visibility**: public (free rulesets, CodeQL, secret scanning; everything in history becomes visible, including commit email addresses, so check it for personal data first) or private. For public, when the effective `user.email` is a personal address, recommend the GitHub noreply address in this repository's local config.
 
 ### 4. Agree on the plan, then render
 
-Show the plan in one message: modules, variables, license, the files that will be created, the ones that will be kept and how they will be merged, the files that will move. Ask for an explicit go-ahead. Then show the dry run and render, without permissions first, because they deny edits to `AGENTS.md`, which you fill next:
+Show the plan in one message: modules, variables, license, the files that will be created, the ones that will be kept and how they will be merged, the files that will move, and whether `git init` is needed. Say so when a language module is chosen before its manifest exists: the CI job fails until `package.json` or `Cargo.toml` arrives, so the setup commit and the task that creates it should be pushed together. Don't make the job conditional to hide this.
+
+Ask for an explicit go-ahead. If there is no repository yet, run `git init -b main`. Move personal content into `docs/private/` before the first commit, and confirm with `git check-ignore` after rendering. Then show the dry run and render, without permissions first, because they deny edits to `AGENTS.md`, which you fill next:
 
 ```bash
 node "$KIT/bin/dev-kit.mjs" init . --modules <a,b> --var NAME=... --var "DESCRIPTION=..." --var REPO=... --dry-run
@@ -80,14 +86,20 @@ node "$KIT/bin/dev-kit.mjs" init . --modules <a,b> --var ... --no-settings
 
 - **AGENTS.md:** stack with versions, directory layout, the real commands (match `package.json` scripts), invariants and project guardrails. Ask the user which rules matter most to them; those are the invariants. Keep the Task Execution Protocol section.
 - **SPEC.md:** purpose, scope, flows, numbered business rules. A short SPEC is fine for a small project; don't pad it.
-- **TASKS.md:** an existing plan is converted to the kit's format (Status line, Type, Read-Only Context Files, Target Files, Step-by-Step Instructions, Verification, Dependency Graph) without changing its content or order; show the result. Otherwise draft the plan with the user. Decisions left open in steps 2–3 go under Open Decisions.
+- **TASKS.md:** an existing plan is converted to the kit's format (Status line, Type, Human Step, Read-Only Context Files, Target Files, Step-by-Step Instructions, Verification, Dependency Graph) without changing its content or order; show the result. Otherwise draft the plan with the user. Set Human Step wherever only the owner can finish a task (hand verification, external setup). Decisions left open in steps 2–3 go under Open Decisions, each naming the task it must be resolved before.
 - Content from kept files (an old `CLAUDE.md`, a hand-written README) moves into the matching new section; say what moved where. Remove a project `CLAUDE.md` only with approval.
 - **SECURITY.md:** the Scope section, what the project protects.
 - **LICENSE:** `gh api licenses/<key> --jq .body`, with the year and name placeholders (`[year]`, `[fullname]`, …) replaced by the current year and git `user.name`; a `"license"` field in `package.json` if there is one.
 
 ### 6. Permissions and project skills
 
-Explain what `.claude/settings.json` will allow and deny (from `"$KIT"/modules/*/settings.json`), in particular that `AGENTS.md` becomes read-only for agents. Ask whether the project needs other `Edit(...)` paths (source folders other than `src/**`, `tests/**`). Then render again to add it: `node "$KIT/bin/dev-kit.mjs" init .`.
+Explain what `.claude/settings.json` will allow and deny (from `"$KIT"/modules/*/settings.json`), in particular that `AGENTS.md` becomes read-only for agents. Ask whether the project needs other rules (source folders other than `src/**`, `tests/**`, or commands such as a language's package manager). Record them in `.dev-kit.json`, never in `.claude/settings.json` directly, so `check` stays quiet and updates keep them. The same field lists third-party actions the project adds:
+
+```json
+"project": { "permissions": { "allow": ["Edit(backend/**)"], "deny": [] }, "actions": ["owner/repo@*"] }
+```
+
+Then render again to add the file: `node "$KIT/bin/dev-kit.mjs" init .`. After this, `.dev-kit.json` is read-only for agents; later changes go to the user as a diff.
 
 Suggest domain skills for `.claude/skills/` where the project has rules the task text can't carry (for example an audit of its encryption code, or how to write a database migration); write them only if the user wants them now.
 
@@ -95,16 +107,19 @@ Suggest domain skills for `.claude/skills/` where the project has rules the task
 
 - `grep -rn "TODO(dev-kit)" .` → only the ones you reported as open.
 - Workflows lint clean: `docker run --rm -v "$PWD:/repo" -w /repo docker.io/rhysd/actionlint:1.7.12 -color=false` (skip with a note if Docker is missing).
-- `node "$KIT/bin/dev-kit.mjs" check .` → nothing differs or is missing.
+- `node "$KIT/bin/dev-kit.mjs" check .` → nothing differs or is missing, and no action is unlisted.
+- `git add -n .` → no `docs/private/`, secrets or build output.
 - JSON files parse (`jq . .claude/settings.json`).
 
 ### 8. Report and hand over
 
-Report: modules, files created and kept, what you filled, what is still open. Then the **user steps**, which you don't run because they change things outside the repository:
+Report: modules, files created and kept, what you filled, what is still open. Then the **user steps**, in this order, which you don't run because they change things outside the repository or the user's identity:
 
-- the commands in `docs/github-settings.md` (run with `!`; the public-only ones after the repository is public);
-- `docs/deploy.md` one-time setup when `cloudflare-pages` is enabled;
-- SSH commit signing, if `git config commit.gpgsign` isn't `true`.
+1. Before the first commit: commit identity and SSH signing, if `git config commit.gpgsign` isn't `true` or a public repository would record a personal email address. Prefer the repository's local config, and give the exact commands from `docs/github-settings.md`. The `main` ruleset rejects unsigned commits.
+2. Tools reported missing in step 1.
+3. Without a remote: `gh repo create <REPO> --public|--private --source=. --remote=origin`.
+4. The commands in `docs/github-settings.md` (run with `!`; the public-only ones after the repository is public).
+5. `docs/deploy.md` one-time setup when `cloudflare-pages` is enabled.
 
 Propose one conventional commit (`chore: set up dev-kit <version>`) and wait for approval. If pushing to `main` deploys (an existing Git integration), say so before pushing.
 
@@ -121,7 +136,7 @@ For a project that already has `.dev-kit.json`, when the stack changes (moving f
 
 1. Read the kit's `CHANGELOG.md` from the project's version (`.dev-kit.json`) to the kit's `VERSION` and summarize what changed.
 2. `node "$KIT/bin/dev-kit.mjs" check . --diff` shows every kit-managed file that differs from the new templates, and the missing ones.
-3. For each difference: **template change** (take it), **project customization** (keep it), or both (merge by hand, keeping the project's additions). Go through the non-obvious ones with the user. Project-owned files (AGENTS.md, SPEC.md, TASKS.md, …) aren't compared; apply a structural change the CHANGELOG names to them by hand. Changes to `AGENTS.md` go to the user as a diff.
+3. For each difference: **template change** (take it), **project customization** (keep it; permissions and actions move to `project` in `.dev-kit.json`), or both (merge by hand, keeping the project's additions). Go through the non-obvious ones with the user. Project-owned files (AGENTS.md, SPEC.md, TASKS.md, …) aren't compared; apply a structural change the CHANGELOG names to them by hand. Changes to `AGENTS.md` go to the user as a diff.
 4. `node "$KIT/bin/dev-kit.mjs" init .` creates missing files and records the new kit version.
 5. Verify as in init step 7, report, propose `chore: update dev-kit to <version>`, wait for approval.
 

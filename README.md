@@ -67,13 +67,30 @@ A module is added when a real project needs it, built from what that project nee
 
 Files a project rewrites after setup (`AGENTS.md`, `SPEC.md`, `TASKS.md`, `README.md`, …) are listed as `owned` in their `module.json`. `check` skips them unless you pass `--all`.
 
+A TypeScript package outside the repository root sets `TS_DIR` (for example `frontend`). The paths in `tsconfig.json`, `eslint.config.js` and the permissions follow it; the root holds a pnpm workspace whose scripts delegate to the package.
+
+## Project additions
+
+Permissions and third-party actions a project needs beyond its modules go in `.dev-kit.json`. They are merged into `.claude/settings.json` and the allowed list in `docs/github-settings.md`, so `check` doesn't report them as differences and updates keep them:
+
+```json
+{
+  "project": {
+    "permissions": { "allow": ["Edit(backend/**)", "Bash(uv *)"], "deny": ["Bash(uv add *)"] },
+    "actions": ["owner/repo@*"]
+  }
+}
+```
+
+`check` also lists any third-party action in the project's workflows that this list and the modules don't cover, since GitHub would block it.
+
 ## Writing templates
 
 Every file under `modules/<name>/files/` lands at the same path in the project.
 
-- `{{VAR}}` is replaced by a variable. Names are upper case, so GitHub's `${{ github.ref }}` is left alone. A module declares its variables in `module.json` (`description`, optional `default`). `DATE`, `YEAR`, `DEV_KIT_VERSION`, `CODEQL_LANGUAGES` and `ALLOWED_ACTIONS` are filled automatically from the enabled modules.
+- `{{VAR}}` is replaced by a variable. Names are upper case, so GitHub's `${{ github.ref }}` is left alone. A module declares its variables in `module.json` (`description`, optional `default`, optional `pattern` that a value must match). `DATE`, `YEAR`, `DEV_KIT_VERSION`, `CODEQL_LANGUAGES` and `ALLOWED_ACTIONS` are filled automatically from the enabled modules.
 - `{{#ts}}` … `{{/ts}}` keeps lines only when `ts` is enabled, and `{{^ts}}` … `{{/ts}}` only when it isn't. With an upper-case name (`{{#BUILD_COMMAND}}`) the block depends on whether the variable is empty. A marker goes on its own line, or opens and closes within one line. Blocks nest.
-- `settings.json` and `dependabot.yml` next to `module.json` are fragments. The renderer merges them into `.claude/settings.json` and `.github/dependabot.yml`.
+- `settings.json` and `dependabot.yml` next to `module.json` are fragments, rendered like any template and then merged into `.claude/settings.json` and `.github/dependabot.yml`.
 - `module.json` also takes `requires`, `codeql` (CodeQL languages), `actions` (third-party actions to allow) and `owned`. A variable with `"default": ""` may stay empty. Use `requires` only when a module cannot work without another one, not because the first project that used it had both.
 
 A new module is a new directory. Add a test case if it changes `ci.yml`, then run `node --test`.

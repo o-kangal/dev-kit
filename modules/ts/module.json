@@ -1,5 +1,12 @@
 {
   "description": "pnpm + strict TypeScript + Vitest + ESLint: tsconfig, eslint config, CI job (typecheck, lint, test, build, audit), Dependabot for npm.",
+  "vars": {
+    "TS_DIR": {
+      "description": "Directory holding the TypeScript package when it isn't the repository root, e.g. frontend; the root then needs a pnpm workspace whose scripts delegate to it",
+      "default": "",
+      "pattern": "^$|^[A-Za-z0-9_][A-Za-z0-9._-]*(/[A-Za-z0-9_][A-Za-z0-9._-]*)*$"
+    }
+  },
   "codeql": [
     "javascript-typescript"
   ],

@@ -2,6 +2,22 @@
 
 All notable changes to the kit. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/). Projects record the version they were set up with in `.dev-kit.json`; `/dev-kit update` reads this file from there.
 
+## [0.2.0] - 2026-11-05
+
+### Added
+
+- `project` in `.dev-kit.json`: extra permissions and third-party actions, merged into `.claude/settings.json` and `docs/github-settings.md`. Move a project's hand-added rules there so `check` stops reporting the file.
+- `check` lists third-party actions in a project's workflows that aren't allowed.
+- `ts`: optional `TS_DIR` for a package outside the repository root. Variables can declare a `pattern`, and `settings.json` fragments are rendered as templates.
+- `TASKS.md` and `next-task`: a **Human Step** field; a task that has one stays open until the owner confirms it. Apply this to existing `TASKS.md` files by hand.
+- `.gitignore` ignores `docs/private/`, and `AGENTS.md` has guardrails for private notes and new actions. Apply these to existing `AGENTS.md` and `.gitignore` files by hand.
+
+### Changed
+
+- `/dev-kit init` checks for a repository, commit identity and signing, and missing tools; reads existing documents for personal content; runs `git init` when needed; warns about CI failing until a language manifest exists; and lists the user steps in the order they must happen.
+- Open Decisions in `TASKS.md` name the task they must be resolved before.
+- Action pins refreshed to their newest releases.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added

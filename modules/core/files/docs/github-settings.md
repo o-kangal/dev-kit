@@ -12,7 +12,7 @@ The settings of `{{REPO}}` that the code relies on, and how to apply them with t
 | Dependabot alerts and security updates | on | `gh api -X PUT $R/vulnerability-alerts && gh api -X PUT $R/automated-security-fixes` |
 | Pull requests merge by squash only, merged branches deleted | | `gh api -X PATCH $R -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_squash_merge=true -F delete_branch_on_merge=true` |
 
-A workflow that needs a new third-party action fails until the action is added to the selected list.
+A workflow that needs a new third-party action fails until the action is added to the selected list. Add it to `project.actions` in `.dev-kit.json`, rerender this file's list with `/dev-kit update`, and run the command again. The kit's `check` command reports actions that aren't listed.
 
 Leave **SHA pinning required** off: it also applies to the workflows GitHub runs for Dependabot, which call actions by tag, so with it on Dependabot silently stops (no runs, no rebases). Our own workflows pin every action to a commit SHA anyway, and Dependabot keeps those pins current.
 
@@ -43,7 +43,9 @@ Set them with `gh secret set CLOUDFLARE_API_TOKEN` (it prompts, so the value sta
 
 ## Commit signing
 
-Commits and release tags are signed with SSH keys (`git config gpg.format ssh`, `commit.gpgsign true`, `tag.gpgsign true`). The `main` ruleset rejects unsigned commits, so add your public key on GitHub as a **signing key** (Settings → SSH and GPG keys), or with `gh ssh-key add ~/.ssh/id_ed25519.pub --type signing`.
+Commits and release tags are signed with SSH keys (`git config gpg.format ssh`, `commit.gpgsign true`, `tag.gpgsign true`). The `main` ruleset rejects unsigned commits, so add your public key on GitHub as a **signing key** (Settings → SSH and GPG keys), or with `gh ssh-key add ~/.ssh/id_ed25519.pub --type signing`. Set this up before the first commit.
+
+Every commit also records your email address, which is visible on a public repository. To keep a personal address private, use your GitHub noreply address in this repository: `git config user.email "$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')"`.
 
 ## Applied
 

@@ -33,5 +33,8 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Private notes that must never be published
+docs/private/
+
 # Claude Code per-user settings
 .claude/settings.local.json

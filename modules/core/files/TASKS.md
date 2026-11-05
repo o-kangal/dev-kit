@@ -11,8 +11,8 @@
 
 ---
 
-## Open Decisions (resolve before Task 1)
-1. **...:** option A or option B?
+## Open Decisions (resolve before the task named in each item)
+1. **... (before Task N):** option A or option B?
 
 ---
 
@@ -21,6 +21,7 @@
 ### Task 1: Project Setup
 - **Status:** ⏳ Pending
 - **Type:** Setup
+- **Human Step:** None <!-- Or what the owner must do or confirm before this task can be completed. -->
 - **Read-Only Context Files:** `AGENTS.md`, `SPEC.md`
 - **Target Files (Create/Modify):**
   - `...`

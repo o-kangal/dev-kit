@@ -31,6 +31,8 @@ Write a short plan: the files you'll touch and the invariants at risk. Confirm t
 
 When the docs conflict or the plan can't run as written, prefer SPEC.md over TASKS.md for behaviour and AGENTS.md for guardrails, and mention the conflict in the report. Never resolve one by weakening a guardrail, and never route around a deny rule in `.claude/settings.json` (shell redirection, another tool): ask the user instead.
 
+A new third-party GitHub Action needs the owner: `.dev-kit.json` is read-only for agents, so name the action in the report and give the exact `project.actions` change and the command from `docs/github-settings.md`.
+
 Dependency installs are denied. Write a new dependency into the manifest by hand at an exact, current version (`npm view <pkg> version`, `cargo search <crate>`), then install from it.
 
 ## 4. Implement
@@ -49,6 +51,8 @@ If something fails, fix the cause and rerun. The bar is zero errors and zero new
 If the task hit a non-obvious problem worth remembering, propose a **Known Pitfalls** entry for AGENTS.md in the report (agents can't edit AGENTS.md; the user adds it).
 
 ## 6. Mark complete
+
+If the task's **Human Step** is not `None`, tell the user what is needed and wait. Mark the task complete only after the user confirms the step in this conversation, however good the automated checks look.
 
 Change the task's status line to `✅ Completed (<today>)`. Change nothing else in TASKS.md, apart from recording answered Open Decisions.
 

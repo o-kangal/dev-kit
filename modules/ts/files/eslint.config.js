@@ -20,7 +20,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['tests/**', '**/*.test.ts'],
+    files: ['{{#TS_DIR}}{{TS_DIR}}/{{/TS_DIR}}tests/**', '**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
       // Vitest's asymmetric matchers (`expect.stringContaining`) are typed `any`.

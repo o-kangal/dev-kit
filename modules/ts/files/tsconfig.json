@@ -22,5 +22,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "tests", "*.config.ts"]
+  "include": ["{{#TS_DIR}}{{TS_DIR}}/{{/TS_DIR}}src", "{{#TS_DIR}}{{TS_DIR}}/{{/TS_DIR}}tests", "{{#TS_DIR}}{{TS_DIR}}/{{/TS_DIR}}*.config.ts"]
 }

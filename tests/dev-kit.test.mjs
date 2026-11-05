@@ -94,6 +94,92 @@ describe('every module combination', () => {
   });
 });
 
+describe('project setup defaults', () => {
+  test('private notes are ignored and tasks carry a human step', () => {
+    const { files } = renderProject([], VARS);
+    assert.match(files.get('.gitignore'), /^docs\/private\/$/m);
+    assert.match(files.get('TASKS.md'), /\*\*Human Step:\*\* None/);
+    assert.match(files.get('.claude/skills/next-task/SKILL.md'), /Human Step/);
+    assert.doesNotMatch(files.get('TASKS.md'), /resolve before Task 1/);
+  });
+});
+
+describe('TS_DIR', () => {
+  test('defaults to the repository root', () => {
+    const { files } = renderProject(['ts'], VARS);
+    assert.deepEqual(JSON.parse(files.get('tsconfig.json')).include, ['src', 'tests', '*.config.ts']);
+    const { allow } = JSON.parse(files.get('.claude/settings.json')).permissions;
+    assert.ok(allow.includes('Edit(src/**)'));
+    assert.ok(!allow.includes('Edit(pnpm-workspace.yaml)'));
+  });
+  test('moves the paths into the subdirectory', () => {
+    const { files } = renderProject(['ts'], { ...VARS, TS_DIR: 'apps/web' });
+    assert.deepEqual(JSON.parse(files.get('tsconfig.json')).include, ['apps/web/src', 'apps/web/tests', 'apps/web/*.config.ts']);
+    assert.match(files.get('eslint.config.js'), /'apps\/web\/tests\/\*\*'/);
+    const { allow } = JSON.parse(files.get('.claude/settings.json')).permissions;
+    for (const rule of ['Edit(apps/web/src/**)', 'Edit(apps/web/package.json)', 'Edit(apps/web/vite.config.ts)', 'Edit(pnpm-workspace.yaml)', 'Edit(package.json)']) assert.ok(allow.includes(rule), rule);
+    assert.ok(!allow.includes('Edit(src/**)'));
+  });
+  test('rejects paths that would break the templates', () => {
+    for (const value of ['frontend/', './frontend', '../frontend', '/frontend']) {
+      assert.throws(() => renderProject(['ts'], { ...VARS, TS_DIR: value }), /Invalid variables[\s\S]*TS_DIR/, value);
+    }
+  });
+});
+
+describe('project additions', () => {
+  const project = { permissions: { allow: ['Edit(backend/**)'], deny: ['Bash(uv add *)'] }, actions: ['astral-sh/setup-uv@*'] };
+  const withProject = (name) => {
+    const dir = join(scratch, name);
+    init(dir, { vars: VARS, log: quiet });
+    const path = join(dir, '.dev-kit.json');
+    writeFileSync(path, JSON.stringify({ ...JSON.parse(readFileSync(path, 'utf8')), project }));
+    return dir;
+  };
+  test('are merged into the settings and survive a rerun', () => {
+    const dir = withProject('extras');
+    rmSync(join(dir, '.claude/settings.json'));
+    rmSync(join(dir, 'docs/github-settings.md'));
+    init(dir, { log: quiet });
+    const { permissions } = JSON.parse(readFileSync(join(dir, '.claude/settings.json'), 'utf8'));
+    assert.ok(permissions.allow.includes('Edit(backend/**)'));
+    assert.ok(permissions.deny.includes('Bash(uv add *)'));
+    assert.ok(permissions.deny.includes('Edit(AGENTS.md)'), 'module rules stay');
+    assert.match(readFileSync(join(dir, 'docs/github-settings.md'), 'utf8'), /astral-sh\/setup-uv@\*/);
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, '.dev-kit.json'), 'utf8')).project, project);
+    const report = check(dir, { log: quiet });
+    assert.deepEqual(report.differs, []);
+    assert.deepEqual(report.missing, []);
+  });
+  test('must be lists of strings', () => {
+    const dir = withProject('bad-extras');
+    const path = join(dir, '.dev-kit.json');
+    writeFileSync(path, JSON.stringify({ ...JSON.parse(readFileSync(path, 'utf8')), project: { actions: 'owner/repo@*' } }));
+    assert.throws(() => check(dir, { log: quiet }), /must be lists of strings/);
+  });
+});
+
+describe('unlisted actions', () => {
+  const SHA = 'a'.repeat(40);
+  const workflow = (...refs) => `jobs:\n  a:\n    steps:\n${refs.map((ref) => `      - uses: ${ref}\n`).join('')}      # - uses: commented/out@${SHA}\n`;
+  test('no module combination uses an action it does not allow', () => {
+    combinations().forEach((modules, index) => {
+      const dir = join(scratch, `actions-${index}`);
+      init(dir, { modules, vars: VARS, log: quiet });
+      assert.deepEqual(check(dir, { log: quiet }).unlisted, [], modules.join(', ') || 'core only');
+    });
+  });
+  test('reports third-party actions outside the list and ignores the others', () => {
+    const dir = join(scratch, 'unlisted');
+    init(dir, { modules: ['ts'], vars: VARS, log: quiet });
+    writeFileSync(join(dir, '.github/workflows/extra.yml'), workflow(`astral-sh/setup-uv@${SHA}`, `pnpm/action-setup@${SHA}`, `actions/cache@${SHA}`, `github/codeql-action/init@${SHA}`, './.github/workflows/ci.yml', 'docker://alpine:3'));
+    assert.deepEqual(check(dir, { log: quiet }).unlisted, [{ action: 'astral-sh/setup-uv', file: '.github/workflows/extra.yml' }]);
+    const path = join(dir, '.dev-kit.json');
+    writeFileSync(path, JSON.stringify({ ...JSON.parse(readFileSync(path, 'utf8')), project: { actions: ['astral-sh/setup-uv@*'] } }));
+    assert.deepEqual(check(dir, { log: quiet }).unlisted, []);
+  });
+});
+
 describe('init and check', () => {
   test('missing variables are listed together', () => {
     assert.throws(() => renderProject(['cloudflare-pages'], { NAME: 'x' }), (error) => /DESCRIPTION/.test(error.message) && /SITE_URL/.test(error.message));
