@@ -10,7 +10,7 @@ It has two halves:
 ## Install
 
 ```bash
-git clone git@github.com:o-kangal/dev-kit.git ~/Coding/dev-kit
+git clone https://github.com/o-kangal/dev-kit.git ~/Coding/dev-kit
 ~/Coding/dev-kit/install.sh --dry-run   # see what it would do
 ~/Coding/dev-kit/install.sh             # explains, checks requirements, shows the plan, asks
 ```
